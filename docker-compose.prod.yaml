@@ -37,16 +37,15 @@ services:
     image: redis:7-alpine
     container_name: hcmut-tss-redis
     restart: always
-    ports:
-      - "6379:6379"
     networks:
       - tss-network
     command: >
       redis-server
       --save ""
       --appendonly no
+      --requirepass ${REDIS_PASSWORD}
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -142,6 +141,9 @@ services:
       dockerfile: Dockerfile
     container_name: hcmut-tss-backend
     restart: always
+    extra_hosts:
+      - "10diemse251.online:host-gateway"
+      - "www.10diemse251.online:host-gateway"
     ports:
       - "10001:10001"
     networks:
@@ -153,6 +155,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       SPRING_REDIS_HOST: redis
       SPRING_REDIS_PORT: 6379
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD}
       SSO_SERVICE_URL: http://sso-mimic:10003
       DATACORE_SERVICE_URL: http://datacore-mimic:10005
       LIBRARY_SERVICE_URL: http://library-mimic:10006
